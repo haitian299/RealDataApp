@@ -1,0 +1,15 @@
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\bin\Debug\RealDataApp.exe
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\bin\Debug\RealDataApp.pdb
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp.csprojResolveAssemblyReference.cache
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\MainWindow.baml
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\MainWindow.g.cs
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\App.g.cs
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp_MarkupCompile.cache
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp.g.resources
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp.Properties.Resources.resources
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp.csproj.GenerateResource.Cache
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp.exe
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\obj\Debug\RealDataApp.pdb
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\bin\Debug\RealDataApp.exe.config
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\bin\Debug\QuantBox.XAPI.dll
+c:\users\jht\documents\visual studio 2013\Projects\RealDataApp\RealDataApp\bin\Debug\QuantBox.XAPI.pdb
