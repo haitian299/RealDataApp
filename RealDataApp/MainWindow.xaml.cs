@@ -17,6 +17,11 @@ using QuantBox;
 using System.Data;
 using MySql.Data;
 using MySql.Data.MySqlClient;
+using System.Collections.ObjectModel;
+using System.Threading;
+using System.Net;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace RealDataApp
 {
@@ -35,15 +40,19 @@ namespace RealDataApp
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             dataTableInit();
-            
+            ocdt.Add(tickDataTable);
         }
 
 
         Run infoTxt = new Run();
         private XApi api;
         DataTable tickDataTable = new DataTable();
-
-
+        ObservableCollection<DataTable> ocdt = new ObservableCollection<DataTable>();
+        ObservableCollection<string> allquotes = new ObservableCollection<string>();
+        ObservableCollection<string> quotesToAdd = new ObservableCollection<string>();
+        //List<string> quotesToAdd = new List<string>();
+        //List<string> allquotes = new List<string>();
+        MySqlConnection sqlCon = new MySqlConnection();
 
         private void dataTableInit()
         {
@@ -73,8 +82,14 @@ namespace RealDataApp
             {
                 showInfo(ex.ToString());
             }
-            conn.Close();
+            sqlCon = conn;
             showInfo("Done.");
+
+            
+
+
+            //conn.Close();
+            
         }
         
 
@@ -238,11 +253,17 @@ namespace RealDataApp
                     case "Volume":
                         row[fi.Name] = marketData.Volume;
                         break;
-
+                    default:
+                        break;
                 }
             }
             tickDataTable.Rows.Add(row);
 
+            //string sql = "INSERT INTO table1 (password) VALUES (123)";
+            //MySqlCommand cmd = new MySqlCommand(sql, sqlCon);
+            //cmd.ExecuteNonQuery();
+            
+            
         }
 
 
@@ -257,6 +278,27 @@ namespace RealDataApp
 
             ctpInit();
             mysqlInit();
+            listboxInit();
+
+        }
+
+        private void listboxInit()
+        {
+            List<string> ss = getAllID();
+            ss.Sort();
+            foreach (string str in ss)
+            {
+                allquotes.Add(str);
+            }
+            //allquotes.Sort();
+            this.quotesList.ItemsSource = allquotes;
+            this.quotesListToAdd.ItemsSource = quotesToAdd;
+        }
+
+        private void ListBoxItem_MouseDoubleClick(object sender, RoutedEventArgs e)
+        {
+            quotesToAdd.Add((sender as ListBoxItem).Content.ToString());
+            allquotes.Remove((sender as ListBoxItem).Content.ToString());
         }
 
         private void ctpInit()
@@ -266,7 +308,7 @@ namespace RealDataApp
             api = new XApi(@"C:\Users\jht\Documents\Visual Studio 2013\Projects\DataApp\DataApp\dll\QuantBox_CTP_Quote.dll");
             showInfo("Initialize server info");
             api.Server.BrokerID = "66666";
-            api.Server.Address = "tcp://ctp1-md9.citicsf.com:41213";
+            api.Server.Address = "tcp://123.124.247.8:41213";
 
             showInfo("set 回调函数");
             api.OnConnectionStatus += OnConnectionStatus;
@@ -284,7 +326,7 @@ namespace RealDataApp
         }
 
         /// <summary>
-        /// 订阅行情
+        /// 订阅行情+数据库创建表
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -292,7 +334,47 @@ namespace RealDataApp
         private void getDataBt_Click(object sender, EventArgs e)
         {
             //showInfo("begin subscribe quotes");
-            api.Subscribe("IF1504", "");
+            foreach (string quote in quotesToAdd)
+            {
+                api.Subscribe(quote, "");
+            }
+
+            //在mysql中创建表
+
+            foreach (string q in quotesToAdd)
+            {
+                //创建表
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = sqlCon;
+                string sql = "CREATE TABLE IF NOT EXISTS " + q + "(id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id))";
+                cmd.CommandText = sql;
+                cmd.ExecuteNonQuery();
+                //创建列
+                Type t = typeof(DepthMarketDataField);
+                foreach (var v in t.GetFields())
+                {
+                    string colSql = string.Empty;
+                    if (v.FieldType.ToString() == "System.String")
+                    {
+                        colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " VARCHAR(20)";
+                    }
+                    else if (v.FieldType.ToString() == "System.Int32")
+                    {
+                        colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " INT";
+                    }
+                    else
+                    {
+                        colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " DOUBLE";
+                    }
+                    cmd.CommandText = colSql;
+                    cmd.ExecuteNonQuery();
+                }
+
+            }
+
+
+            //之后修改onrtndepth
+
         }
 
         private void showInfo(string info)
@@ -314,6 +396,7 @@ namespace RealDataApp
         /// <param name="e"></param>
         private void StopBt_Click(object sender, EventArgs e)
         {
+            
             api.Dispose();
         }
 
@@ -333,12 +416,13 @@ namespace RealDataApp
 
         private void tickDataGrid_Loaded(object sender, RoutedEventArgs e)
         {
-            tickDataGrid.AutoGenerateColumns = false;
-
-            tickDataGrid.Items.Clear();
             
-            tickDataGrid.ItemsSource = tickDataTable.AsDataView();
-            tickDataGrid.AutoGenerateColumns = true;
+            //tickDataGrid.AutoGenerateColumns = false;
+
+            //tickDataGrid.Items.Clear();
+
+            //tickDataGrid.ItemsSource = tickDataTable.AsDataView();
+            //tickDataGrid.AutoGenerateColumns = true;
             //Type t = typeof(DepthMarketDataField);
             //if (t == null)
             //    return;
@@ -346,9 +430,8 @@ namespace RealDataApp
             //{
             //    DataGridTextColumn dgtc = new DataGridTextColumn();
             //    dgtc.Header = v.Name;
-
             //    Binding b = new Binding();
-            //    b.Source = tickDataTable.Columns[v.Name];
+            //    b.Source = ocdt[ocdt.Count - 1].Columns[v.Name];
 
             //    dgtc.Binding = b;
             //    tickDataGrid.Columns.Add(dgtc);
@@ -356,20 +439,112 @@ namespace RealDataApp
             //}
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        void ocdt_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            Type t = typeof(DepthMarketDataField);
-            foreach (var v in t.GetFields())
-            {
-                for (int i = 0; i < tickDataTable.Rows.Count; i++)
-                {
-                    
-                    showInfo( v.Name +" "+ tickDataTable.Rows[i][v.Name].ToString() + " " +tickDataTable.Rows[i][v.Name].GetType());
-                }
-                    
-            }
+            
         }
 
-        
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            //MySqlCommand cmd = new MySqlCommand();
+            //string sql = "ALTER TABLE table1 ADD COLUMN kk VARCHAR(30)";
+            //cmd.CommandText = sql;
+            //cmd.Connection = sqlCon;
+            //cmd.ExecuteNonQuery();
+            //sqlCon.Close();
+
+            //Type t = typeof(DepthMarketDataField);
+            //foreach (var v in t.GetFields())
+            //{
+            //    for (int i = 0; i < tickDataTable.Rows.Count; i++)
+            //    {
+
+            //        showInfo(v.Name + " " + tickDataTable.Rows[i][v.Name].ToString() + " " +v.FieldType);
+            //    }
+
+            //}
+
+            foreach (string str in quotesToAdd)
+            {
+                showInfo(str);
+            }
+
+
+
+        }
+
+        private List<string> getAllID()
+        {
+            List<string> allId = new List<string>();
+            string url = "http://money.finance.sina.com.cn/d/api/openapi_proxy.php/?__s=[[%22qhhq%22,%22qbhy%22,%22zdf%22,1000]]&callback=getData.futures_qhhq_gnqh";
+            string strMsg = string.Empty;
+            try
+            {
+                WebRequest request = WebRequest.Create(url);
+                WebResponse response = request.GetResponse();
+                StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("gb2312"));
+                strMsg = reader.ReadToEnd();
+
+                reader.Close();
+                reader.Dispose();
+                response.Close();
+            }
+            catch
+            { }
+            string pattern = @"\[\[";
+            Regex regex = new Regex(pattern);
+            string[] strPart = regex.Split(strMsg);
+            if (strPart.Length >= 2)
+            {
+                string[] subStr = strPart[1].Split('[');
+                foreach (string str in subStr)
+                {
+                    string[] finalStr = str.Split(',');
+                    if (finalStr.Length > 2)
+                    {
+                        string idStr = finalStr[1].Trim('"');
+                        allId.Add(idStr);
+                    }
+                }
+                List<string> idAfterAjust = idAjust(allId);
+                return idAfterAjust;
+                //return allId;
+            }
+            else
+            {
+                MessageBox.Show("获取合约失败");
+                return allId;
+            }
+
+        }
+
+
+        private List<string> idAjust(List<string> originalId)
+        {
+            List<string> newAllId = new List<string>();
+            foreach (string id in originalId)
+            {
+                string newId = id;
+                if (id.Contains("SR") || id.Contains("TA") || id.Contains("CF") || id.Contains("RI") || id.Contains("WH") || id.Contains("OI") || id.Contains("FG") || id.Contains("TC") || id.Contains("MA") || id.Contains("RM"))
+                {
+                    if (id.Length > 3)
+                    {
+                        newId = id.Remove(2, 1);
+                    }
+                }
+                else if (id.Contains("IF") || id.Contains("TF"))
+                {
+
+                }
+                else
+                {
+                    newId = id.ToLower();
+                }
+                newAllId.Add(newId);
+            }
+            return newAllId;
+        }
+
+
     }
 }

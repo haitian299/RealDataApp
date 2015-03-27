@@ -6,10 +6,18 @@
     <Grid RenderTransformOrigin="0.5,0.5">
         <Button Content="连接服务器" HorizontalAlignment="Left" Margin="20,10,0,0" VerticalAlignment="Top" Width="100" Click="connectBt_Click"/>
         <Button Content=" 开始获取行情" HorizontalAlignment="Left" Margin="20,37,0,0" VerticalAlignment="Top" Width="100" Click="getDataBt_Click"/>
-        <DataGrid HorizontalAlignment="Left" Margin="20,91,0,0" VerticalAlignment="Top" Height="323" Width="266" x:Name="tickDataGrid" />
+        <DataGrid HorizontalAlignment="Left" Margin="386,91,0,0" VerticalAlignment="Top" Height="323" Width="100" x:Name="tickDataGrid" ItemsSource="{Binding}" AutoGenerateColumns="True" />
         <Button Content="Stop" HorizontalAlignment="Left" Margin="20,64,0,0" VerticalAlignment="Top" Width="100" RenderTransformOrigin="0.253,-0.455" Click="StopBt_Click"/>
-        <RichTextBox HorizontalAlignment="Left" Height="323" Margin="291,91,0,0" VerticalAlignment="Top" Width="364" x:Name="infoTxtBox" Loaded="infoTxtBox_Loaded" />
+        <RichTextBox HorizontalAlignment="Left" Height="323" Margin="519,91,0,0" VerticalAlignment="Top" Width="136" x:Name="infoTxtBox" Loaded="infoTxtBox_Loaded" />
         <Button Content="导出" HorizontalAlignment="Left" Margin="580,10,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <ListBox HorizontalAlignment="Left" Height="323" Margin="100,91,0,0" VerticalAlignment="Top" Width="75" Name="quotesListToAdd" />
+        <ListBox HorizontalAlignment="Left" Height="323" Margin="20,91,0,0" VerticalAlignment="Top" Width="75" Name="quotesList">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
 
 
     </Grid>
