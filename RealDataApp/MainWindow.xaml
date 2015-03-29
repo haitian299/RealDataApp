@@ -1,23 +1,56 @@
 ﻿<Window x:Class="RealDataApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="468" Width="687">
+        Title="MainWindow" Height="458.343" Width="630.136">
 
     <Grid RenderTransformOrigin="0.5,0.5">
-        <Button Content="连接服务器" HorizontalAlignment="Left" Margin="20,10,0,0" VerticalAlignment="Top" Width="100" Click="connectBt_Click"/>
-        <Button Content=" 开始获取行情" HorizontalAlignment="Left" Margin="20,37,0,0" VerticalAlignment="Top" Width="100" Click="getDataBt_Click"/>
-        <DataGrid HorizontalAlignment="Left" Margin="386,91,0,0" VerticalAlignment="Top" Height="323" Width="100" x:Name="tickDataGrid" ItemsSource="{Binding}" AutoGenerateColumns="True" />
-        <Button Content="Stop" HorizontalAlignment="Left" Margin="20,64,0,0" VerticalAlignment="Top" Width="100" RenderTransformOrigin="0.253,-0.455" Click="StopBt_Click"/>
-        <RichTextBox HorizontalAlignment="Left" Height="323" Margin="519,91,0,0" VerticalAlignment="Top" Width="136" x:Name="infoTxtBox" Loaded="infoTxtBox_Loaded" />
-        <Button Content="导出" HorizontalAlignment="Left" Margin="580,10,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <ListBox HorizontalAlignment="Left" Height="323" Margin="100,91,0,0" VerticalAlignment="Top" Width="75" Name="quotesListToAdd" />
-        <ListBox HorizontalAlignment="Left" Height="323" Margin="20,91,0,0" VerticalAlignment="Top" Width="75" Name="quotesList">
-            <ListBox.ItemContainerStyle>
-                <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                    <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
-                </Style>
-            </ListBox.ItemContainerStyle>
-        </ListBox>
+        <TabControl TabStripPlacement="Left">
+            <TabItem Header="设置">
+                <WrapPanel>
+                    <StackPanel>
+                        <Button Content="连接服务器" HorizontalAlignment="Left" Width="100" Click="connectBt_Click">
+                            <Button.BorderBrush>
+                                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveCaptionTextColorKey}}"/>
+                            </Button.BorderBrush>
+                            <Button.Background>
+                                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
+                            </Button.Background>
+                        </Button>
+                        <Button Content=" 开始获取行情" HorizontalAlignment="Left" Width="100" Click="getDataBt_Click"/>
+                        <Button Content="Stop" HorizontalAlignment="Left" Width="100" Click="StopBt_Click"/>
+                        <Button Content="导出" HorizontalAlignment="Left" Width="100" Click="Button_Click"/>
+                    </StackPanel>
+                    <ListBox HorizontalAlignment="Left" Height="325" VerticalAlignment="Top" Width="160" Name="quotesList" UseLayoutRounding="False">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                <EventSetter Event="Control.MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                    <ListBox HorizontalAlignment="Left" Height="322" VerticalAlignment="Top" Width="161" Name="quotesListToAdd" >
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick1"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                    
+                </WrapPanel>
+
+            </TabItem>
+            <TabItem Header="行情">
+                <DataGrid VerticalAlignment="Bottom" Name="tickDataGrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="349" HorizontalAlignment="Right" Width="645"  />
+            </TabItem>
+            <TabItem Header="记录">
+                <RichTextBox HorizontalAlignment="Left" Name="infoTxtBox" />
+            </TabItem>
+        </TabControl>
+
+
+
+
+
+
 
 
     </Grid>

@@ -35,12 +35,16 @@ namespace RealDataApp
             InitializeComponent();
             this.tickDataGrid.Loaded += tickDataGrid_Loaded;
             this.Loaded += MainWindow_Loaded;
+            
         }
+
+        
 
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             dataTableInit();
             ocdt.Add(tickDataTable);
+            infoTxtBoxInit();
         }
 
 
@@ -50,13 +54,13 @@ namespace RealDataApp
         ObservableCollection<DataTable> ocdt = new ObservableCollection<DataTable>();
         ObservableCollection<string> allquotes = new ObservableCollection<string>();
         ObservableCollection<string> quotesToAdd = new ObservableCollection<string>();
+        Type t = typeof(DepthMarketDataField);
         //List<string> quotesToAdd = new List<string>();
         //List<string> allquotes = new List<string>();
         MySqlConnection sqlCon = new MySqlConnection();
 
         private void dataTableInit()
         {
-            Type t = typeof(DepthMarketDataField);
             if (t == null)
                 return;
             foreach (var v in t.GetFields())
@@ -70,20 +74,28 @@ namespace RealDataApp
 
         private void mysqlInit()
         {
-            string connStr = "server=localhost;user=root;database=test;port=3306;password=;";
+            string connStr = "server=localhost;user=root;port=3306;database=data1;password=leran299;";
             MySqlConnection conn = new MySqlConnection(connStr);
             try
             {
-                showInfo("Connecting to MySQL...");
+                showInfo("数据库连接状态: 开始连接数据库...");
                 conn.Open();
-                // Perform database operations
+                
+
+                sqlCon = conn;
+
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = sqlCon;
+                string dbsql = "CREATE DATABASE IF NOT EXISTS data1;";
+                cmd.CommandText = dbsql;
+                cmd.ExecuteNonQuery();
+                showInfo("数据库连接状态: 连接数据库成功");
             }
             catch (Exception ex)
             {
-                showInfo(ex.ToString());
+                showInfo("连接数据库发生错误: " + ex.Message);
             }
-            sqlCon = conn;
-            showInfo("Done.");
+            
 
             
 
@@ -103,8 +115,8 @@ namespace RealDataApp
         /// <param name="size1"></param>
         private void OnConnectionStatus(object sender, ConnectionStatus status, ref RspUserLoginField userLogin, int size1)
         {
-            showInfo("showing info inside onConnectionStatus now");
-            showInfo("//" + status + userLogin.ErrorMsg());
+            //showInfo("OnConnectionStatus回调开始");
+            showInfo("ctp连接状态: " + status + userLogin.ErrorMsg());
 
         }
 
@@ -259,11 +271,34 @@ namespace RealDataApp
             }
             tickDataTable.Rows.Add(row);
 
-            //string sql = "INSERT INTO table1 (password) VALUES (123)";
-            //MySqlCommand cmd = new MySqlCommand(sql, sqlCon);
-            //cmd.ExecuteNonQuery();
-            
-            
+
+            string sql = "INSERT INTO " + marketData.InstrumentID +" (";
+
+            foreach (var v in t.GetFields())
+            {
+                sql += v.Name + ",";
+            }
+            sql = sql.Substring(0, sql.Length - 1);
+            sql += ") VALUES (";
+            foreach (var v in t.GetFields())
+            {
+                if (v.FieldType.ToString() == "System.String")
+                {
+                    sql += "'" + row[v.Name].ToString() + "',";
+                }
+                else
+                {
+                    sql += row[v.Name].ToString() + ",";
+                }
+
+
+            }
+            sql = sql.Substring(0, sql.Length - 1);
+            sql += ");";
+            showInfo(sql);
+            MySqlCommand cmd = new MySqlCommand(sql, sqlCon);
+            cmd.ExecuteNonQuery();
+
         }
 
 
@@ -275,7 +310,6 @@ namespace RealDataApp
 
         private void connectBt_Click(object sender, EventArgs e)
         {
-
             ctpInit();
             mysqlInit();
             listboxInit();
@@ -301,21 +335,38 @@ namespace RealDataApp
             allquotes.Remove((sender as ListBoxItem).Content.ToString());
         }
 
+        private void ListBoxItem_MouseDoubleClick1(object sender, RoutedEventArgs e)
+        {
+            allquotes.Add((sender as ListBoxItem).Content.ToString());
+            quotesToAdd.Remove((sender as ListBoxItem).Content.ToString());
+        }
+
+
         private void ctpInit()
         {
-            showInfo("begin");
-            showInfo("Initialize api");
-            api = new XApi(@"C:\Users\jht\Documents\Visual Studio 2013\Projects\DataApp\DataApp\dll\QuantBox_CTP_Quote.dll");
-            showInfo("Initialize server info");
-            api.Server.BrokerID = "66666";
-            api.Server.Address = "tcp://123.124.247.8:41213";
+            //MessageBox.Show(System.Environment.CurrentDirectory);
+            
+            try
+            {
+                showInfo("ctp连接状态: 初始化ctp api...");
+                api = new XApi(System.AppDomain.CurrentDomain.BaseDirectory + "QuantBox_CTP_Quote.dll");
+                showInfo("ctp连接状态: 初始化ctp api 成功！");
+                showInfo("ctp连接状态: 初始化ctp参数及设置回调函数...");
+                api.Server.BrokerID = "2030";
+                api.Server.Address = "tcp://asp-sim2-md1.financial-trading-platform.com:26213";
 
-            showInfo("set 回调函数");
-            api.OnConnectionStatus += OnConnectionStatus;
-            api.OnRtnDepthMarketData += OnRtnDepthMarketData;
+                
+                api.OnConnectionStatus += OnConnectionStatus;
+                api.OnRtnDepthMarketData += OnRtnDepthMarketData;
 
-            showInfo("begin connecting");
-            api.Connect();
+                showInfo("ctp连接状态: 初始化ctp参数及设置回调函数 成功！");
+                showInfo("ctp连接状态: 开始连接ctp...");
+                api.Connect();
+            }
+            catch (Exception ex)
+            {
+                showInfo("发生错误: " + ex.Message);
+            }
 
 
             //Thread.Sleep(3000);
@@ -333,41 +384,46 @@ namespace RealDataApp
 
         private void getDataBt_Click(object sender, EventArgs e)
         {
-            //showInfo("begin subscribe quotes");
-            foreach (string quote in quotesToAdd)
-            {
-                api.Subscribe(quote, "");
-            }
-
-            //在mysql中创建表
-
+            MySqlCommand cmd = new MySqlCommand();
+            cmd.Connection = sqlCon;
+            //创建表
+            
             foreach (string q in quotesToAdd)
             {
-                //创建表
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.Connection = sqlCon;
-                string sql = "CREATE TABLE IF NOT EXISTS " + q + "(id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id))";
-                cmd.CommandText = sql;
-                cmd.ExecuteNonQuery();
-                //创建列
-                Type t = typeof(DepthMarketDataField);
-                foreach (var v in t.GetFields())
+                try
                 {
-                    string colSql = string.Empty;
-                    if (v.FieldType.ToString() == "System.String")
-                    {
-                        colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " VARCHAR(20)";
-                    }
-                    else if (v.FieldType.ToString() == "System.Int32")
-                    {
-                        colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " INT";
-                    }
-                    else
-                    {
-                        colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " DOUBLE";
-                    }
-                    cmd.CommandText = colSql;
+                    string sql = "CREATE TABLE IF NOT EXISTS " + q + "(id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));";
+                    cmd.CommandText = sql;
                     cmd.ExecuteNonQuery();
+                    //创建列
+                    
+                    foreach (var v in t.GetFields())
+                    {
+                        string colSql = string.Empty;
+                        if (v.FieldType.ToString() == "System.String")
+                        {
+                            colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " VARCHAR(20)";
+                        }
+                        else if (v.FieldType.ToString() == "System.Int32")
+                        {
+                            colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " INT";
+                        }
+                        else
+                        {
+                            colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " DOUBLE";
+                        }
+                        cmd.CommandText = colSql;
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    showInfo("创建表出错" +ex.Message);
+                }
+
+                foreach (string quote in quotesToAdd)
+                {
+                    api.Subscribe(quote, "");
                 }
 
             }
@@ -379,11 +435,20 @@ namespace RealDataApp
 
         private void showInfo(string info)
         {
-            this.Dispatcher.Invoke(new Action(() =>
+            try
             {
-                this.infoTxt.Text += info + System.Environment.NewLine;
-                this.infoTxtBox.ScrollToEnd();
-            }));
+                this.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    this.infoTxt.Text += DateTime.Now.ToLongTimeString() + " " + info + System.Environment.NewLine;
+                    this.infoTxtBox.ScrollToEnd();
+                }));
+            }
+            catch (Exception ex)
+            {
+                showInfo(ex.Message);
+            }
+            
+           
         }
 
         
@@ -402,7 +467,7 @@ namespace RealDataApp
 
 
 
-        private void infoTxtBox_Loaded(object sender, RoutedEventArgs e)
+        private void infoTxtBoxInit()
         {
             Paragraph pgf = new Paragraph();
             infoTxt.Text = "";
