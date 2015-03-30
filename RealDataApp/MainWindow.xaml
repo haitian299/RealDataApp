@@ -16,7 +16,8 @@
                                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
                             </Button.Background>
                         </Button>
-                        <Button Content=" 开始获取行情" HorizontalAlignment="Left" Width="100" Click="getDataBt_Click"/>
+                        <Button Content="为合约创建表" HorizontalAlignment="Left" Width="100" Click="createTable_Click"/>
+                        <Button Content="开始获取行情" HorizontalAlignment="Left" Width="100" Click="getDataBt_Click"/>
                         <Button Content="Stop" HorizontalAlignment="Left" Width="100" Click="StopBt_Click"/>
                         <Button Content="导出" HorizontalAlignment="Left" Width="100" Click="Button_Click"/>
                     </StackPanel>

@@ -54,10 +54,14 @@ namespace RealDataApp
         ObservableCollection<DataTable> ocdt = new ObservableCollection<DataTable>();
         ObservableCollection<string> allquotes = new ObservableCollection<string>();
         ObservableCollection<string> quotesToAdd = new ObservableCollection<string>();
+        
+        static string connStr = "server=localhost;user=root;port=3306;database=tickdata;password=leran299;";
+        MySqlConnection sqlCon = new MySqlConnection(connStr);
+
         Type t = typeof(DepthMarketDataField);
         //List<string> quotesToAdd = new List<string>();
         //List<string> allquotes = new List<string>();
-        MySqlConnection sqlCon = new MySqlConnection();
+        //MySqlConnection sqlCon = new MySqlConnection();
 
         private void dataTableInit()
         {
@@ -72,37 +76,36 @@ namespace RealDataApp
             //tickDataTable.PrimaryKey = keyColumn.Split(',').Select(v => tickDataTable.Columns[v]).ToArray();
         }
 
-        private void mysqlInit()
-        {
-            string connStr = "server=localhost;user=root;port=3306;database=data1;password=leran299;";
-            MySqlConnection conn = new MySqlConnection(connStr);
-            try
-            {
-                showInfo("数据库连接状态: 开始连接数据库...");
-                conn.Open();
+        //private void mysqlInit()
+        //{
+            
+        //    try
+        //    {
+        //        showInfo("数据库连接状态: 开始连接数据库...");
+        //        conn.Open();
                 
 
-                sqlCon = conn;
+        //        sqlCon = conn;
 
-                MySqlCommand cmd = new MySqlCommand();
-                cmd.Connection = sqlCon;
-                string dbsql = "CREATE DATABASE IF NOT EXISTS data1;";
-                cmd.CommandText = dbsql;
-                cmd.ExecuteNonQuery();
-                showInfo("数据库连接状态: 连接数据库成功");
-            }
-            catch (Exception ex)
-            {
-                showInfo("连接数据库发生错误: " + ex.Message);
-            }
+        //        //MySqlCommand cmd = new MySqlCommand();
+        //        //cmd.Connection = sqlCon;
+        //        //string dbsql = "CREATE DATABASE IF NOT EXISTS tickdata;";
+        //        //cmd.CommandText = dbsql;
+        //        //cmd.ExecuteNonQuery();
+        //        showInfo("数据库连接状态: 连接数据库成功");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        showInfo("连接数据库发生错误: " + ex.Message);
+        //    }
             
 
             
 
 
-            //conn.Close();
+        //    //conn.Close();
             
-        }
+        //}
         
 
 
@@ -128,10 +131,7 @@ namespace RealDataApp
 
         private void OnRtnDepthMarketData(object sender, ref DepthMarketDataField marketData)
         {
-            showInfo("showing info inside depth now");
-            showInfo("//" + marketData.InstrumentID);
-            showInfo("//" + marketData.ExchangeID);
-            showInfo("//" + marketData.LastPrice.ToString());
+            
 
             var row = tickDataTable.NewRow();
 
@@ -284,7 +284,19 @@ namespace RealDataApp
             {
                 if (v.FieldType.ToString() == "System.String")
                 {
-                    sql += "'" + row[v.Name].ToString() + "',";
+                    if (row[v.Name].ToString() == string.Empty)
+                    {
+                        sql += "null,";
+                    }
+                    else
+                    {
+                        sql += "'" + row[v.Name].ToString() + "',";
+                    }
+
+                }
+                else if (v.FieldType.ToString() == "System.Double" && Convert.ToDouble(row[v.Name]) == double.MaxValue)
+                {
+                    sql += "null,";
                 }
                 else
                 {
@@ -293,12 +305,21 @@ namespace RealDataApp
 
 
             }
+            
             sql = sql.Substring(0, sql.Length - 1);
             sql += ");";
-            showInfo(sql);
-            MySqlCommand cmd = new MySqlCommand(sql, sqlCon);
+            //showInfo(sql);
+            MySqlCommand cmd = new MySqlCommand();
+            MySqlConnection newCon = sqlCon;
+            cmd.Connection = newCon;
+            if (newCon.State == ConnectionState.Closed)
+            {
+                newCon.Open();
+            }
+            cmd.CommandText = sql;
             cmd.ExecuteNonQuery();
-
+            newCon.Close();
+            
         }
 
 
@@ -311,7 +332,7 @@ namespace RealDataApp
         private void connectBt_Click(object sender, EventArgs e)
         {
             ctpInit();
-            mysqlInit();
+            //mysqlInit();
             listboxInit();
 
         }
@@ -352,9 +373,9 @@ namespace RealDataApp
                 api = new XApi(System.AppDomain.CurrentDomain.BaseDirectory + "QuantBox_CTP_Quote.dll");
                 showInfo("ctp连接状态: 初始化ctp api 成功！");
                 showInfo("ctp连接状态: 初始化ctp参数及设置回调函数...");
-                api.Server.BrokerID = "2030";
-                api.Server.Address = "tcp://asp-sim2-md1.financial-trading-platform.com:26213";
-
+                api.Server.BrokerID = "66666";
+                api.Server.Address = "tcp://ctp1-md9.citicsf.com:41213";
+                
                 
                 api.OnConnectionStatus += OnConnectionStatus;
                 api.OnRtnDepthMarketData += OnRtnDepthMarketData;
@@ -376,29 +397,38 @@ namespace RealDataApp
             //Thread.Sleep(5 * 1000);
         }
 
+
         /// <summary>
-        /// 订阅行情+数据库创建表
+        /// 为每个合约创建表
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
 
-        private void getDataBt_Click(object sender, EventArgs e)
+
+        private void createTable_Click(object sender, EventArgs e)
         {
-            MySqlCommand cmd = new MySqlCommand();
-            cmd.Connection = sqlCon;
             //创建表
-            
             foreach (string q in quotesToAdd)
             {
                 try
                 {
+                    
+                    MySqlCommand cmd = new MySqlCommand();
+                    MySqlConnection newCon1 = sqlCon;
+                    if (newCon1.State == ConnectionState.Closed)
+                    {
+                        newCon1.Open();
+                    }
                     string sql = "CREATE TABLE IF NOT EXISTS " + q + "(id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (id));";
                     cmd.CommandText = sql;
+                    cmd.Connection = newCon1;
                     cmd.ExecuteNonQuery();
+                    newCon1.Close();
                     //创建列
                     
                     foreach (var v in t.GetFields())
                     {
+                        
                         string colSql = string.Empty;
                         if (v.FieldType.ToString() == "System.String")
                         {
@@ -412,23 +442,44 @@ namespace RealDataApp
                         {
                             colSql = "ALTER TABLE " + q + " ADD COLUMN " + v.Name + " DOUBLE";
                         }
-                        cmd.CommandText = colSql;
-                        cmd.ExecuteNonQuery();
+                        
+                        MySqlCommand cmd1 = new MySqlCommand();
+                        MySqlConnection newCon2 = sqlCon;
+                        if (newCon2.State == ConnectionState.Closed)
+                        {
+                            newCon2.Open();
+                        }
+                        cmd1.CommandText = colSql;
+                        cmd1.Connection = newCon2;
+                        cmd1.ExecuteNonQuery();
+                        newCon2.Close();
                     }
                 }
                 catch (Exception ex)
                 {
                     showInfo("创建表出错" +ex.Message);
                 }
+        }
+        }
 
-                foreach (string quote in quotesToAdd)
-                {
-                    api.Subscribe(quote, "");
-                }
 
+
+        /// <summary>
+        /// 订阅行情
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+
+        private void getDataBt_Click(object sender, EventArgs e)
+        {
+
+
+            foreach (string quote in quotesToAdd)
+            {
+                api.Subscribe(quote, "");
             }
 
-
+            
             //之后修改onrtndepth
 
         }
@@ -597,7 +648,7 @@ namespace RealDataApp
                         newId = id.Remove(2, 1);
                     }
                 }
-                else if (id.Contains("IF") || id.Contains("TF"))
+                else if (id.Contains("IF") || id.Contains("TF") || id.Contains("T"))
                 {
 
                 }
