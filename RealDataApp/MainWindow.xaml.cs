@@ -33,7 +33,7 @@ namespace RealDataApp
         public MainWindow()
         {
             InitializeComponent();
-            this.tickDataGrid.Loaded += tickDataGrid_Loaded;
+            //this.tickDataGrid.Loaded += tickDataGrid_Loaded;
             this.Loaded += MainWindow_Loaded;
             
         }
@@ -42,21 +42,25 @@ namespace RealDataApp
 
         void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            
             dataTableInit();
-            ocdt.Add(tickDataTable);
+            //ocdt.Add(tickDataTable);
             infoTxtBoxInit();
+            listboxInit();
         }
 
 
         Run infoTxt = new Run();
         private XApi api;
         DataTable tickDataTable = new DataTable();
-        ObservableCollection<DataTable> ocdt = new ObservableCollection<DataTable>();
+        //ObservableCollection<DataTable> ocdt = new ObservableCollection<DataTable>();
         ObservableCollection<string> allquotes = new ObservableCollection<string>();
         ObservableCollection<string> quotesToAdd = new ObservableCollection<string>();
-        
-        static string connStr = "server=localhost;user=root;port=3306;database=tickdata;password=leran299;";
-        MySqlConnection sqlCon = new MySqlConnection(connStr);
+
+        string connStr = string.Empty;
+        //static string connStr = "server=localhost;user=root;port=3306;database=tickdata;password=leran299;";
+        //static string connStr = "server=localhost;user=root;port=3306;database=tickdata;password=;";
+        MySqlConnection sqlCon;
 
         Type t = typeof(DepthMarketDataField);
         //List<string> quotesToAdd = new List<string>();
@@ -131,7 +135,8 @@ namespace RealDataApp
 
         private void OnRtnDepthMarketData(object sender, ref DepthMarketDataField marketData)
         {
-            
+
+            showInfo(marketData.InstrumentID);
 
             var row = tickDataTable.NewRow();
 
@@ -331,9 +336,18 @@ namespace RealDataApp
 
         private void connectBt_Click(object sender, EventArgs e)
         {
+
+            string sqlIP, sqlUser, sqlPassword;
+            sqlIP = this.sqlIPtxt.Text;
+            sqlUser = this.sqlUsertxt.Text;
+            sqlPassword = this.sqlPasswordtxt.Text;
+            connStr = "server=" + sqlIP + ";user=" + sqlUser + ";port=3306;database=tickdata;password=" + sqlPassword + ";";
+            sqlCon = new MySqlConnection(connStr);
+
+
             ctpInit();
             //mysqlInit();
-            listboxInit();
+            
 
         }
 
@@ -373,8 +387,8 @@ namespace RealDataApp
                 api = new XApi(System.AppDomain.CurrentDomain.BaseDirectory + "QuantBox_CTP_Quote.dll");
                 showInfo("ctp连接状态: 初始化ctp api 成功！");
                 showInfo("ctp连接状态: 初始化ctp参数及设置回调函数...");
-                api.Server.BrokerID = "66666";
-                api.Server.Address = "tcp://ctp1-md9.citicsf.com:41213";
+                api.Server.BrokerID = this.brokerTxt.Text;
+                api.Server.Address = "tcp://"+ this.addressTxt.Text;
                 
                 
                 api.OnConnectionStatus += OnConnectionStatus;
@@ -530,30 +544,30 @@ namespace RealDataApp
             this.infoTxtBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         }
 
-        private void tickDataGrid_Loaded(object sender, RoutedEventArgs e)
-        {
+        //private void tickDataGrid_Loaded(object sender, RoutedEventArgs e)
+        //{
             
-            //tickDataGrid.AutoGenerateColumns = false;
+        //    //tickDataGrid.AutoGenerateColumns = false;
 
-            //tickDataGrid.Items.Clear();
+        //    //tickDataGrid.Items.Clear();
 
-            //tickDataGrid.ItemsSource = tickDataTable.AsDataView();
-            //tickDataGrid.AutoGenerateColumns = true;
-            //Type t = typeof(DepthMarketDataField);
-            //if (t == null)
-            //    return;
-            //foreach (var v in t.GetFields())
-            //{
-            //    DataGridTextColumn dgtc = new DataGridTextColumn();
-            //    dgtc.Header = v.Name;
-            //    Binding b = new Binding();
-            //    b.Source = ocdt[ocdt.Count - 1].Columns[v.Name];
+        //    //tickDataGrid.ItemsSource = tickDataTable.AsDataView();
+        //    //tickDataGrid.AutoGenerateColumns = true;
+        //    //Type t = typeof(DepthMarketDataField);
+        //    //if (t == null)
+        //    //    return;
+        //    //foreach (var v in t.GetFields())
+        //    //{
+        //    //    DataGridTextColumn dgtc = new DataGridTextColumn();
+        //    //    dgtc.Header = v.Name;
+        //    //    Binding b = new Binding();
+        //    //    b.Source = ocdt[ocdt.Count - 1].Columns[v.Name];
 
-            //    dgtc.Binding = b;
-            //    tickDataGrid.Columns.Add(dgtc);
+        //    //    dgtc.Binding = b;
+        //    //    tickDataGrid.Columns.Add(dgtc);
 
-            //}
-        }
+        //    //}
+        //}
 
         void ocdt_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {

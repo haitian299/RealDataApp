@@ -1,51 +1,73 @@
 ﻿<Window x:Class="RealDataApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="458.343" Width="630.136">
+        Title="TickData" Height="456.525" Width="536.5" ResizeMode="CanMinimize">
 
     <Grid RenderTransformOrigin="0.5,0.5">
-        <TabControl TabStripPlacement="Left">
-            <TabItem Header="设置">
-                <WrapPanel>
-                    <StackPanel>
-                        <Button Content="连接服务器" HorizontalAlignment="Left" Width="100" Click="connectBt_Click">
-                            <Button.BorderBrush>
-                                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveCaptionTextColorKey}}"/>
-                            </Button.BorderBrush>
-                            <Button.Background>
-                                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
-                            </Button.Background>
-                        </Button>
-                        <Button Content="为合约创建表" HorizontalAlignment="Left" Width="100" Click="createTable_Click"/>
-                        <Button Content="开始获取行情" HorizontalAlignment="Left" Width="100" Click="getDataBt_Click"/>
-                        <Button Content="Stop" HorizontalAlignment="Left" Width="100" Click="StopBt_Click"/>
-                        <Button Content="导出" HorizontalAlignment="Left" Width="100" Click="Button_Click"/>
-                    </StackPanel>
-                    <ListBox HorizontalAlignment="Left" Height="325" VerticalAlignment="Top" Width="160" Name="quotesList" UseLayoutRounding="False">
+
+
+        <StackPanel>
+            <WrapPanel>
+                <StackPanel>
+                    <Button Content="Connect" HorizontalAlignment="Left" Width="200" Click="connectBt_Click">
+                        <Button.BorderBrush>
+                            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ActiveCaptionTextColorKey}}"/>
+                        </Button.BorderBrush>
+                        <Button.Background>
+                            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}"/>
+                        </Button.Background>
+                    </Button>
+                    <Button Content="Create Table" HorizontalAlignment="Left" Width="200" Click="createTable_Click"/>
+                    <Button Content="Begin Subscribe" HorizontalAlignment="Left" Width="200" Click="getDataBt_Click"/>
+                    <Button Content="Stop" HorizontalAlignment="Left" Width="200" Click="StopBt_Click"/>
+                    <Label HorizontalAlignment="Center" Height="20" Width="190" FontSize="9" HorizontalContentAlignment="Center" >BrokerID</Label>
+                    <TextBox HorizontalAlignment="Center" Text="66666" Height="23" TextWrapping="Wrap"  VerticalAlignment="Top" Width="195" Name="brokerTxt"/>
+                    <Label HorizontalAlignment="Center" Height="20" Width="190" FontSize="9" HorizontalContentAlignment="Center" >Quote Server</Label>
+                    <TextBox HorizontalAlignment="Center" Text="ctp1-md9.citicsf.com:41213" Height="23" TextWrapping="Wrap"  VerticalAlignment="Top" Width="195" Name="addressTxt"/>
+                    <Label HorizontalAlignment="Center" Height="20" Width="190" FontSize="9" HorizontalContentAlignment="Center" >Mysql IP</Label>
+                    <TextBox HorizontalAlignment="Center" Text="localhost" Height="23" TextWrapping="Wrap"  VerticalAlignment="Top" Width="195" Name="sqlIPtxt"/>
+                    <Label HorizontalAlignment="Center" Height="20" Width="190" FontSize="9" HorizontalContentAlignment="Center" >Mysql User</Label>
+                    <TextBox HorizontalAlignment="Center" Text="root" Height="23" TextWrapping="Wrap"  VerticalAlignment="Top" Width="195" Name="sqlUsertxt"/>
+                    <Label HorizontalAlignment="Center" Height="20" Width="190" FontSize="9" HorizontalContentAlignment="Center" >Mysql Password</Label>
+                    <TextBox HorizontalAlignment="Center" Text="leran299" Height="23" TextWrapping="Wrap"  VerticalAlignment="Top" Width="195" Name="sqlPasswordtxt"/>
+                </StackPanel>
+                <StackPanel>
+                    <Label HorizontalAlignment="Center" Height="20" FontSize="9" HorizontalContentAlignment="Center" Padding="5,4,5,0" >All quotes</Label>
+                    <ListBox HorizontalAlignment="Left" Height="283.602" VerticalAlignment="Top" Width="160" Name="quotesList" UseLayoutRounding="False">
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <EventSetter Event="Control.MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
                             </Style>
                         </ListBox.ItemContainerStyle>
                     </ListBox>
-                    <ListBox HorizontalAlignment="Left" Height="322" VerticalAlignment="Top" Width="161" Name="quotesListToAdd" >
+                </StackPanel>
+                <StackPanel>
+                    <Label HorizontalAlignment="Center" Height="20" FontSize="9" HorizontalContentAlignment="Center" Padding="5,4,5,0" >Quotes to subscribe</Label>
+                    <ListBox HorizontalAlignment="Left" Height="284" VerticalAlignment="Top" Width="161" Name="quotesListToAdd" >
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick1"/>
                             </Style>
                         </ListBox.ItemContainerStyle>
                     </ListBox>
-                    
-                </WrapPanel>
+                </StackPanel>
+                
 
-            </TabItem>
-            <TabItem Header="行情">
-                <DataGrid VerticalAlignment="Bottom" Name="tickDataGrid" ItemsSource="{Binding}" AutoGenerateColumns="True" Height="349" HorizontalAlignment="Right" Width="645"  />
-            </TabItem>
-            <TabItem Header="记录">
-                <RichTextBox HorizontalAlignment="Left" Name="infoTxtBox" />
-            </TabItem>
-        </TabControl>
+
+
+
+
+
+            </WrapPanel>
+            <RichTextBox HorizontalAlignment="Left" Name="infoTxtBox" Height="122" />
+        </StackPanel>
+
+
+
+
+
+
+
 
 
 
